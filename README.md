@@ -6,7 +6,7 @@ EchoMind is a user-authenticated, privacy-first reflection and personal growth c
 
 ## 🚀 Live Demo
 
-🔗 [Try EchoMind Live](https://echomind-32440829381.asia-southeast1.run.app)
+[Try EchoMind Live](https://echomind-324408293981.asia-southeast1.run.app)
 
 ## Architecture & Security Model
 
