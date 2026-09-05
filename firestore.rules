@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny all queries and writes by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions for zero-trust security & identity verification
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Parent User namespace guaranteeing strict multi-tenant isolation
+    match /users/{userId} {
+      // Allow the authenticated owner to inspect or manage their user namespace document
+      allow get, list: if isOwner(userId) && isValidId(userId);
+      allow create, update, delete: if isOwner(userId) && isValidId(userId);
+
+      // User-isolated Conversations subcollection
+      match /conversations/{conversationId} {
+        // Single document fetch
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(conversationId);
+        
+        // Collection list query: Do not evaluate document wildcard ID on collection list queries
+        allow list: if isOwner(userId) && isValidId(userId);
+        
+        // Document removal
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(conversationId);
+        
+        // Document creation: Validates ownership, ID safety, and payload boundaries
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(conversationId)
+          && request.resource.data.userId == userId
+          && request.resource.data.title is string
+          && request.resource.data.title.size() <= 500;
+          
+        // Document update: Restricts mutations strictly to the resource owner
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(conversationId)
+          && request.resource.data.userId == userId;
+
+        // Messages in conversation subcollection
+        match /messages/{messageId} {
+          allow get: if isOwner(userId) && isValidId(userId) && isValidId(conversationId) && isValidId(messageId);
+          allow list: if isOwner(userId) && isValidId(userId) && isValidId(conversationId);
+          allow delete: if isOwner(userId) && isValidId(userId) && isValidId(conversationId) && isValidId(messageId);
+          allow create: if isOwner(userId) && isValidId(userId) && isValidId(conversationId) && isValidId(messageId)
+            && request.resource.data.userId == userId
+            && request.resource.data.content is string
+            && request.resource.data.content.size() <= 10000;
+          allow update: if isOwner(userId) && isValidId(userId) && isValidId(conversationId) && isValidId(messageId)
+            && request.resource.data.userId == userId;
+        }
+      }
+
+      // User-isolated Pattern Compass Insights subcollection
+      match /insights/{insightId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(insightId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(insightId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidId(insightId)
+          && request.resource.data.userId == userId;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "EchoMind",
+  "description": "A secure, private AI-powered reflection and personal growth companion with multi-turn conversations, automated session summaries, and Pattern Compass insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

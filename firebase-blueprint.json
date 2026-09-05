@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Conversation": {
+      "title": "Conversation",
+      "description": "A reflection session containing multi-turn dialogue, topics, and structured summary.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string", "maxLength": 5000 },
+        "keyThemes": { "type": "array" },
+        "sentiment": { "type": "string", "maxLength": 50 },
+        "growthAction": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "userId", "createdAt", "updatedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "An individual message in a reflection conversation, from either user or AI.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conversationId": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "model"] },
+        "content": { "type": "string", "maxLength": 8000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "conversationId", "userId", "role", "content", "createdAt"]
+    },
+    "Insight": {
+      "title": "Insight",
+      "description": "Pattern Compass generated insight analyzing recurring themes, goals, perspective shifts, and prompts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "recurringThemes": { "type": "array" },
+        "frequentlyMentionedGoals": { "type": "array" },
+        "perspectiveShifts": { "type": "array" },
+        "personalizedPrompts": { "type": "array" },
+        "sampleSize": { "type": "number" },
+        "periodDescription": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "userId", "createdAt", "recurringThemes", "frequentlyMentionedGoals"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "User reflection conversations and session summaries"
+    },
+    "/users/{userId}/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Individual messages in a user's reflection conversation"
+    },
+    "/users/{userId}/insights/{insightId}": {
+      "schema": "Insight",
+      "description": "Pattern Compass personal growth insights for the user"
+    }
+  }
+}
